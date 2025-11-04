@@ -1,0 +1,32 @@
+[
+  { "id": 1, "manufacturer": "Toyota", "model": "Camry", "year": 2021 },
+  { "id": 2, "manufacturer": "Honda", "model": "Civic", "year": 2020 },
+  { "id": 3, "manufacturer": "Ford", "model": "Mustang", "year": 2022 },
+  { "id": 4, "manufacturer": "Chevrolet", "model": "Malibu", "year": 2019 },
+  { "id": 5, "manufacturer": "BMW", "model": "X5", "year": 2023 },
+  {
+    "id": 6,
+    "manufacturer": "Mercedes-Benz",
+    "model": "C-Class",
+    "year": 2021
+  },
+  { "id": 7, "manufacturer": "Audi", "model": "A4", "year": 2020 },
+  { "id": 8, "manufacturer": "Volkswagen", "model": "Passat", "year": 2019 },
+  { "id": 9, "manufacturer": "Nissan", "model": "Altima", "year": 2022 },
+  { "id": 10, "manufacturer": "Hyundai", "model": "Elantra", "year": 2023 },
+  { "id": 11, "manufacturer": "Kia", "model": "Sportage", "year": 2021 },
+  { "id": 12, "manufacturer": "Mazda", "model": "CX-5", "year": 2020 },
+  { "id": 13, "manufacturer": "Subaru", "model": "Outback", "year": 2022 },
+  { "id": 14, "manufacturer": "Tesla", "model": "Model 3", "year": 2023 },
+  { "id": 15, "manufacturer": "Volvo", "model": "XC60", "year": 2021 },
+  { "id": 16, "manufacturer": "Lexus", "model": "RX 350", "year": 2022 },
+  { "id": 17, "manufacturer": "Porsche", "model": "Cayenne", "year": 2021 },
+  { "id": 18, "manufacturer": "Jaguar", "model": "XF", "year": 2019 },
+  {
+    "id": 19,
+    "manufacturer": "Land Rover",
+    "model": "Discovery",
+    "year": 2020
+  },
+  { "id": 20, "manufacturer": "Peugeot", "model": "3008", "year": 2022 }
+]
