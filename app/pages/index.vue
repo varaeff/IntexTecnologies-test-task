@@ -5,24 +5,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { Car } from "@/types";
 
 const carsStore = useStore();
 await carsStore.fetchCars();
 
-const checkFilter = (car: Car) => {
-  if (!carsStore.filter) return true;
-  const filterLower = carsStore.filter.toLowerCase();
-  return (
-    car.make.toLowerCase().includes(filterLower) ||
-    car.model.toLowerCase().includes(filterLower) ||
-    car.year.toString().includes(filterLower)
-  );
-};
-
 const filteredCars = computed(() => {
-  return carsStore.cars.filter((car) => checkFilter(car));
+  return carsStore.cars.filter((car) => checkFilter(car, carsStore.filter));
 });
+
+const goToCarInfo = (id: number) => {
+  navigateTo(`/info/${id}`);
+};
 </script>
 
 <template>
@@ -33,6 +26,7 @@ const filteredCars = computed(() => {
       <li v-for="car in filteredCars" :key="car.id">
         <Card
           class="shadow hover:shadow-lg hover:cursor-pointer active:shadow transition-shadow"
+          @click="goToCarInfo(car.id)"
         >
           <CardHeader>
             <CardTitle>{{ car.make }} {{ car.model }}</CardTitle>
