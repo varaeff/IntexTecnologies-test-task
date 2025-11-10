@@ -8,7 +8,8 @@ export const useStore = defineStore("carsStore", {
   }),
   actions: {
     async fetchCars() {
-      this.cars = await $fetch("/api/products");
+      const res = await fetch("/api/products");
+      this.cars = await res.json();
     },
   },
 });
