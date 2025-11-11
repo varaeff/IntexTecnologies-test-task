@@ -3,6 +3,16 @@ import { Search } from "lucide-vue-next";
 import { Input } from "@/components/ui/input";
 
 const carsStore = useStore();
+const route = useRoute();
+
+const filterDisabled = computed(() => {
+  return route.path.includes("/info/");
+});
+
+onMounted(() => {
+  carsStore.initFilter();
+  carsStore.initFilterWatcher();
+});
 </script>
 
 <template>
@@ -15,6 +25,7 @@ const carsStore = useStore();
     >
       <Input
         v-model="carsStore.filter"
+        :disabled="filterDisabled"
         id="search"
         type="text"
         placeholder="Search by make, model or year"

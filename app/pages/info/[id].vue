@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Loader } from "@/components/ui/loader";
 import { AlertCircle } from "lucide-vue-next";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { carFields, carDetailsFields } from "@/utils/dataStructure";
 
 const carsStore = useStore();
+
+if (!carsStore.cars.length) {
+  await carsStore.fetchCars();
+}
 
 const carInfo = computed(() => {
   return carsStore.cars.find(
@@ -17,12 +22,28 @@ const {
   data: carData,
   pending: carPending,
   error: carError,
-} = await useLazyFetch(`/api/carInfo`, {
-  params: {
-    make: carInfo.value?.make,
-    model: carInfo.value?.model,
-    year: carInfo.value?.year,
-  },
+} = useLazyFetch(() => `/api/carInfo`, {
+  params: computed(() =>
+    carInfo.value
+      ? {
+          make: carInfo.value.make,
+          model: carInfo.value.model,
+          year: carInfo.value.year,
+        }
+      : undefined
+  ),
+});
+
+watch(carData, (newVal) => {
+  console.log("Car data fetched:", newVal);
+
+  if (!newVal?.Trims?.[0]) return;
+
+  const carId = parseInt(useRoute().params.id as string);
+  carsStore.cars = carsStore.cars.map((car) =>
+    car.id === carId ? { ...car, fetched: true, ...newVal.Trims[0] } : car
+  );
+  localStorage.setItem("carsData", JSON.stringify(carsStore.cars));
 });
 </script>
 
@@ -36,63 +57,48 @@ const {
           >
         </CardHeader>
         <CardContent>
-          <div class="flex justify-between">
-            <b class="text-gray-500">Year: </b> <b>{{ carInfo?.year }}</b>
-          </div>
-          <div class="flex justify-between">
-            <b class="text-gray-500">Make: </b> <b>{{ carInfo?.make }}</b>
-          </div>
-          <div class="flex justify-between">
-            <b class="text-gray-500">Model: </b> <b>{{ carInfo?.model }}</b>
+          <div
+            v-for="(item, index) in carFields"
+            :key="index"
+            class="flex justify-between"
+          >
+            <b class="text-gray-500">{{ item.label }}:</b>
+            <b>{{ carInfo?.[item.key] }}</b>
           </div>
         </CardContent>
       </Card>
 
-      <Skeleton v-if="carPending" class="h-30 rounded-10" />
-      <Alert v-else-if="carError" variant="destructive" class="shadow">
+      <Loader v-if="carPending" />
+      <Alert
+        v-else-if="carError || carData.error"
+        variant="destructive"
+        class="shadow"
+      >
         <AlertCircle class="w-4 h-4" />
-        <AlertTitle>Error</AlertTitle>
+        <AlertTitle>{{ carData.error || Error }}</AlertTitle>
         <AlertDescription>
           Error loading car details. Please try again later.
         </AlertDescription>
       </Alert>
-      <Card v-else="carData" class="shadow">
+      <Card v-else-if="carData?.Trims" lass="shadow">
         <CardContent>
-          <div class="flex justify-between">
-            <b class="text-gray-500">Body: </b>
-            <b>{{ carData?.Trims[0].model_body }}</b>
+          <div
+            v-for="(item, index) in carDetailsFields"
+            :key="index"
+            class="flex justify-between"
+          >
+            <b class="text-gray-500">{{ item.label }}:</b>
+            <b
+              >{{ carData?.Trims[0][item.key] }}
+              <span v-if="item.label === 'Weight'"> kg</span>
+            </b>
           </div>
-          <div class="flex justify-between">
-            <b class="text-gray-500">Doors: </b>
-            <b>{{ carData?.Trims[0].model_doors }}</b>
-          </div>
-          <div class="flex justify-between">
-            <b class="text-gray-500">Drive: </b>
-            <b>{{ carData?.Trims[0].model_drive }}</b>
-          </div>
-          <div class="flex justify-between">
-            <b class="text-gray-500">Transmission: </b>
-            <b>{{ carData?.Trims[0].model_transmission_type }}</b>
-          </div>
-          <div class="flex justify-between">
-            <b class="text-gray-500">Fuel: </b>
-            <b>{{ carData?.Trims[0].model_engine_fuel }}</b>
-          </div>
-          <div class="flex justify-between">
-            <b class="text-gray-500">City fuel consumption: </b>
-            <b>{{ carData?.Trims[0].model_lkm_city }}</b>
-          </div>
-          <div class="flex justify-between">
-            <b class="text-gray-500">Highway fuel consumption: </b>
-            <b>{{ carData?.Trims[0].model_lkm_hwy }}</b>
-          </div>
-          <div class="flex justify-between">
-            <b class="text-gray-500">Mixed fuel consumption: </b>
-            <b>{{ carData?.Trims[0].model_lkm_mixed }}</b>
-          </div>
-          <div class="flex justify-between">
-            <b class="text-gray-500">Weight: </b>
-            <b>{{ carData?.Trims[0].model_weight_kg }} kg</b>
+        </CardContent>
+      </Card>
+      <Card v-else class="shadow">
+        <CardContent>
+          <div class="text-center text-gray-500">
+            No additional details available for this car.
           </div>
         </CardContent>
       </Card>

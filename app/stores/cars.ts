@@ -6,10 +6,29 @@ export const useStore = defineStore("carsStore", {
     cars: [] as Car[],
     filter: "" as string,
   }),
+
   actions: {
     async fetchCars() {
-      const res = await fetch("/api/products");
-      this.cars = await res.json();
+      this.cars = await $fetch<Car[]>("/api/products");
+
+      if (import.meta.client) {
+        const carsData = localStorage.getItem("carsData");
+        this.cars = carsData ? JSON.parse(carsData) : this.cars;
+      }
+    },
+
+    initFilter() {
+      if (import.meta.client)
+        this.filter = localStorage.getItem("carFilter") || "";
+    },
+
+    initFilterWatcher() {
+      watch(
+        () => this.filter,
+        (newFilter) => {
+          localStorage.setItem("carFilter", newFilter);
+        }
+      );
     },
   },
 });

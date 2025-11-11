@@ -7,7 +7,12 @@ import {
 } from "@/components/ui/card";
 
 const carsStore = useStore();
-await carsStore.fetchCars();
+
+onMounted(async () => {
+  if (!carsStore.cars.length) {
+    await carsStore.fetchCars();
+  }
+});
 
 const filteredCars = computed(() => {
   return carsStore.cars.filter((car) => checkFilter(car, carsStore.filter));
