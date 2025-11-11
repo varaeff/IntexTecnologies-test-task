@@ -9,11 +9,18 @@ export const useStore = defineStore("carsStore", {
 
   actions: {
     async fetchCars() {
+      if (import.meta.client) {
+        const carsData = localStorage.getItem("carsData");
+        if (carsData) {
+          this.cars = JSON.parse(carsData);
+          return;
+        }
+      }
+
       this.cars = await $fetch<Car[]>("/api/products");
 
       if (import.meta.client) {
-        const carsData = localStorage.getItem("carsData");
-        this.cars = carsData ? JSON.parse(carsData) : this.cars;
+        localStorage.setItem("carsData", JSON.stringify(this.cars));
       }
     },
 

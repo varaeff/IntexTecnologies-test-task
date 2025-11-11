@@ -12,16 +12,17 @@ if (!carsStore.cars.length) {
   await carsStore.fetchCars();
 }
 
+const carId = parseInt(useRoute().params.id as string);
+
 const carInfo = computed(() => {
-  return carsStore.cars.find(
-    (car) => car.id === parseInt(useRoute().params.id as string)
-  );
+  return carsStore.cars.find((car) => car.id === carId);
 });
 
 const {
   data: carData,
   pending: carPending,
   error: carError,
+  execute: carExecute,
 } = useLazyFetch(() => `/api/carInfo`, {
   params: computed(() =>
     carInfo.value
@@ -32,18 +33,42 @@ const {
         }
       : undefined
   ),
+  immediate: false,
 });
 
-watch(carData, (newVal) => {
-  console.log("Car data fetched:", newVal);
+watch(
+  carInfo,
+  (info) => {
+    if (info && !info.fetched) {
+      carExecute();
+    }
+  },
+  { immediate: true }
+);
 
-  if (!newVal?.Trims?.[0]) return;
+watch(
+  () => carData.value,
+  (newVal) => {
+    console.log("Car data fetched:", newVal);
 
-  const carId = parseInt(useRoute().params.id as string);
-  carsStore.cars = carsStore.cars.map((car) =>
-    car.id === carId ? { ...car, fetched: true, ...newVal.Trims[0] } : car
-  );
-  localStorage.setItem("carsData", JSON.stringify(carsStore.cars));
+    if (!newVal?.Trims?.[0]) return;
+
+    const targetCar = carsStore.cars.find((c) => c.id === carId);
+
+    if (targetCar) {
+      Object.assign(targetCar, { fetched: true, ...newVal.Trims[0] });
+    }
+
+    if (import.meta.client) {
+      localStorage.setItem("carsData", JSON.stringify(carsStore.cars));
+      console.log("Updated cars data saved to localStorage");
+    }
+  }
+);
+
+const details = computed(() => {
+  if (carInfo.value?.fetched) return carInfo.value;
+  return carData.value?.Trims?.[0];
 });
 </script>
 
@@ -70,17 +95,20 @@ watch(carData, (newVal) => {
 
       <Loader v-if="carPending" />
       <Alert
-        v-else-if="carError || carData.error"
+        v-else-if="carError || carData?.error"
         variant="destructive"
         class="shadow"
       >
         <AlertCircle class="w-4 h-4" />
-        <AlertTitle>{{ carData.error || Error }}</AlertTitle>
+        <AlertTitle>{{
+          carData?.error || carError?.message || "Error"
+        }}</AlertTitle>
         <AlertDescription>
           Error loading car details. Please try again later.
         </AlertDescription>
       </Alert>
-      <Card v-else-if="carData?.Trims" lass="shadow">
+
+      <Card v-else-if="details" class="shadow">
         <CardContent>
           <div
             v-for="(item, index) in carDetailsFields"
@@ -88,8 +116,8 @@ watch(carData, (newVal) => {
             class="flex justify-between"
           >
             <b class="text-gray-500">{{ item.label }}:</b>
-            <b
-              >{{ carData?.Trims[0][item.key] }}
+            <b>
+              {{ details?.[item.key] ?? "—" }}
               <span v-if="item.label === 'Weight'"> kg</span>
             </b>
           </div>
